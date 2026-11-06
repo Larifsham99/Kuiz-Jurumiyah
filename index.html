@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Hub Matan Al-Jurumiyyah</title>
+    
+    <!-- BAHAGIAN TAMBAHAN PWA (UNTUK INSTALL DI FON) -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#047857">
+    <link rel="apple-touch-icon" href="icon-192.png">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@700&family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        body {
+            font-family: 'Nunito', sans-serif;
+            background-color: #f0fdf4;
+            user-select: none;
+            overflow: hidden; /* Prevent scrolling for arcade feel */
+        }
+        .arabic {
+            font-family: 'Amiri', serif;
+        }
+        /* Animasi */
+        @keyframes popIn {
+            0% { transform: scale(0.5); opacity: 0; }
+            70% { transform: scale(1.1); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            50% { transform: translateX(10px); }
+            75% { transform: translateX(-10px); }
+        }
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0px); }
+        }
+        .animate-pop { animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+        .animate-shake { animation: shake 0.4s ease-in-out; }
+        .animate-float { animation: float 3s ease-in-out infinite; }
+        
+        /* Butang Arked */
+        .btn-arcade {
+            transition: all 0.1s;
+            box-shadow: 0 6px 0 rgba(0,0,0,0.2);
+        }
+        .btn-arcade:active {
+            transform: translateY(6px);
+            box-shadow: 0 0px 0 rgba(0,0,0,0.2);
+        }
+        
+        /* Skrin Transisi */
+        .screen { display: none; height: 100dvh; width: 100vw; flex-direction: column; }
+        .screen.active { display: flex; }
+        
+        /* Modal Animasi */
+        @keyframes floatUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+    </style>
+</head>
+<body class="bg-gradient-to-b from-emerald-400 to-teal-600 text-slate-800 h-screen w-screen" onclick="playTouchSound()">
+
+    <!-- SCREEN 1: SPLASH & LOGIN -->
+    <div id="screen-splash" class="screen active justify-center items-center p-6 text-center text-white">
+        <div class="animate-float mb-8">
+            <i class="fas fa-book-open text-6xl mb-4 text-yellow-300"></i>
+            <h1 class="text-5xl font-black mb-2 arabic" style="line-height: 1.5;">متن الآجرومية</h1>
+            <h2 class="text-2xl font-bold tracking-widest text-emerald-100">HUB KUIZ NAHWU</h2>
+        </div>
+        
+        <div class="bg-white/20 p-6 rounded-3xl backdrop-blur-sm w-full max-w-sm">
+            <input type="text" id="playerName" placeholder="Masukkan Nama Anda..." class="w-full p-4 rounded-xl text-center font-bold text-xl text-emerald-700 focus:outline-none focus:ring-4 focus:ring-yellow-400 mb-4 shadow-inner" autocomplete="off">
+            <button onclick="startGameApp()" class="btn-arcade w-full bg-yellow-400 text-yellow-900 font-black text-2xl py-4 rounded-xl border-4 border-yellow-500">
+                MULA MAIN <i class="fas fa-play ml-2"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- SCREEN 2: MAIN HUB -->
+    <div id="screen-hub" class="screen p-4">
+        <header class="flex justify-between items-center bg-white/20 p-4 rounded-2xl text-white mb-6 backdrop-blur-sm">
+            <div>
+                <p class="text-sm opacity-80 font-bold">Ahlan Wa Sahlan,</p>
+                <h3 id="displayPlayerName" class="text-xl font-black">Pemain</h3>
+            </div>
+            <div class="text-right">
+                <p class="text-sm opacity-80 font-bold">Markah Terkumpul</p>
+                <h3 id="displayTotalScore" class="text-2xl font-black text-yellow-300">0</h3>
+            </div>
+        </header>
+
+        <h2 class="text-white font-black text-2xl mb-4 text-center">PILIH PERMAINAN</h2>
+        
+        <div class="grid gap-4 flex-1 content-start">
+            <!-- Game 1 -->
+            <button onclick="selectGame(1)" class="btn-arcade bg-white rounded-2xl p-6 text-left border-b-8 border-emerald-700 relative overflow-hidden flex items-center">
+                <div class="bg-blue-100 text-blue-600 w-16 h-16 rounded-full flex items-center justify-center text-3xl mr-4 z-10">
+                    <i class="fas fa-question"></i>
+                </div>
+                <div class="z-10">
+                    <h3 class="text-2xl font-black text-slate-700 mb-1">Kuiz Nahwu</h3>
+                    <p class="text-slate-500 font-bold text-sm">Uji kefahaman teori teks matan.</p>
+                </div>
+                <i class="fas fa-brain absolute right-[-20px] bottom-[-20px] text-8xl text-emerald-50 opacity-50"></i>
+            </button>
+
+            <!-- Game 2 -->
+            <button onclick="selectGame(2)" class="btn-arcade bg-white rounded-2xl p-6 text-left border-b-8 border-emerald-700 relative overflow-hidden flex items-center mt-2">
+                <div class="bg-orange-100 text-orange-600 w-16 h-16 rounded-full flex items-center justify-center text-3xl mr-4 z-10">
+                    <i class="fas fa-puzzle-piece"></i>
+                </div>
+                <div class="z-10">
+                    <h3 class="text-2xl font-black text-slate-700 mb-1">Kenal Kalimah</h3>
+                    <p class="text-slate-500 font-bold text-sm">Pengecaman Isim, Fi'il & Huruf.</p>
+                </div>
+                <i class="fas fa-language absolute right-[-20px] bottom-[-20px] text-8xl text-emerald-50 opacity-50"></i>
+            </button>
+        </div>
+
+        <button onclick="showLeaderboard()" class="btn-arcade bg-purple-500 text-white font-bold p-4 rounded-xl mt-4 border-b-4 border-purple-700">
+            <i class="fas fa-trophy mr-2"></i> Senarai Juara
+        </button>
+    </div>
+
+    <!-- SCREEN 3: LEVEL SELECT -->
+    <div id="screen-levels" class="screen p-6 justify-center">
+        <button onclick="showScreen('screen-hub')" class="text-white text-lg font-bold mb-6 text-left"><i class="fas fa-arrow-left mr-2"></i> Kembali</button>
+        
+        <h2 id="levelTitle" class="text-white font-black text-4xl mb-8 text-center arabic">Pilih Tahap</h2>
+        
+        <div class="grid gap-6">
+            <button onclick="startQuiz(1)" class="btn-arcade bg-gradient-to-r from-yellow-300 to-yellow-500 text-yellow-900 border-b-8 border-yellow-600 rounded-3xl p-8 text-center">
+                <h3 class="text-3xl font-black mb-2">LEVEL 1</h3>
+                <p id="l1-desc" class="font-bold">Asas Permulaan</p>
+            </button>
+            <button onclick="startQuiz(2)" class="btn-arcade bg-gradient-to-r from-red-400 to-red-500 text-white border-b-8 border-red-700 rounded-3xl p-8 text-center">
+                <h3 class="text-3xl font-black mb-2">LEVEL 2</h3>
+                <p id="l2-desc" class="font-bold">Cabaran Lanjutan</p>
+            </button>
+        </div>
+    </div>
+
+    <!-- SCREEN 4: GAMEPLAY -->
+    <div id="screen-game" class="screen p-4 flex flex-col bg-slate-50">
+        <!-- Header -->
+        <div class="flex justify-between items-center mb-6">
+            <div class="bg-slate-200 text-slate-600 font-bold px-4 py-2 rounded-full shadow-inner">
+                Soalan: <span id="qIndex" class="text-emerald-600">1</span>/<span id="qTotal">10</span>
+            </div>
+            <div class="bg-yellow-400 text-yellow-900 font-black px-4 py-2 rounded-full shadow-inner flex items-center">
+                <i class="fas fa-star mr-2"></i> <span id="currentScore">0</span>
+            </div>
+        </div>
+        
+        <!-- Combo Meter -->
+        <div id="comboMeter" class="text-center font-bold text-orange-500 mb-2 opacity-0 transition-opacity">
+            Combo x<span id="comboCount">1</span> 🔥
+        </div>
+
+        <!-- Question Card -->
+        <div class="bg-white rounded-3xl p-6 shadow-xl mb-6 text-center border-t-8 border-emerald-400 flex-1 flex flex-col justify-center relative overflow-hidden">
+            <div id="animationFeedback" class="absolute inset-0 z-20 flex items-center justify-center bg-white/90 hidden">
+                <!-- Injected via JS -->
+            </div>
+            <h2 id="questionText" class="text-2xl md:text-3xl font-bold text-slate-800 leading-snug arabic" style="line-height: 1.6;">Soalan...</h2>
+        </div>
+
+        <!-- Answers -->
+        <div id="answersContainer" class="grid gap-3 mb-6">
+            <!-- Buttons injected via JS -->
+        </div>
+    </div>
+
+    <!-- SCREEN 5: RESULT -->
+    <div id="screen-result" class="screen justify-center items-center p-6 text-center text-white">
+        <div class="bg-white rounded-3xl p-8 w-full max-w-sm shadow-2xl text-slate-800 animate-pop">
+            <i class="fas fa-crown text-6xl text-yellow-400 mb-4 drop-shadow-md"></i>
+            <h2 class="text-3xl font-black mb-2">Alhamdulillah!</h2>
+            <p class="text-slate-500 font-bold mb-6">Tamat Tahap Ini</p>
+            
+            <div class="bg-slate-100 rounded-2xl p-6 mb-6">
+                <p class="text-sm font-bold text-slate-400">Markah Diperolehi</p>
+                <h3 id="finalScore" class="text-5xl font-black text-emerald-500">0</h3>
+            </div>
+            
+            <button onclick="finishGameAndSave()" class="btn-arcade w-full bg-emerald-500 text-white font-black text-xl py-4 rounded-xl border-b-4 border-emerald-700">
+                KEMBALI KE HUB
+            </button>
+        </div>
+    </div>
+
+    <!-- LEADERBOARD MODAL -->
+    <div id="leaderboardModal" class="fixed inset-0 bg-black/60 z-50 hidden flex-col justify-end">
+        <div class="bg-white w-full rounded-t-3xl p-6 h-[70vh] flex flex-col animate-pop" style="animation-name: floatUp;">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-black text-slate-800"><i class="fas fa-trophy text-yellow-500"></i> Senarai Juara</h2>
+                <button onclick="closeLeaderboard()" class="text-slate-400 text-2xl"><i class="fas fa-times-circle"></i></button>
+            </div>
+            <div id="leaderboardList" class="flex-1 overflow-y-auto space-y-3">
+                <!-- List injected JS -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        /* =========================================
+           DATABASE SOALAN (AL-JURUMIYYAH)
+        ========================================= */
+        const DB = {
+            game1: {
+                level1: [
+                    { q: "Apakah maksud Al-Kalam (الكلام) di sisi ulama Nahwu?", options: ["Lafaz yang tersusun, memberi faedah dengan bahasa Arab", "Pergerakan bibir dan lidah", "Tulisan di dalam buku", "Isyarat dan bahasa badan"], ans: 0 },
+                    { q: "Kalimah (kata) terbahagi kepada berapa bahagian?", options: ["2 (Isim & Fi'il)", "3 (Isim, Fi'il, Huruf)", "4 (Isim, Fi'il, Huruf, Zaraf)", "Tiada had"], ans: 1 },
+                    { q: "Ciri utama Isim (Kata Nama) antaranya ialah boleh menerima...", options: ["Ta' Ta'nith (ت)", "Qad (قد)", "Alif Lam (ال) dan Tanwin", "Sin (س) dan Saufa (سوف)"], ans: 2 },
+                    { q: "Tanda khusus bagi Fi'il (Kata Kerja) antaranya ialah boleh dimasuki oleh...", options: ["Huruf Khafdh (Jer)", "Qad, Sin, Saufa dan Ta' Ta'nith", "Alif dan Lam", "Tanwin"], ans: 1 },
+                    { q: "Huruf (حرف) dalam bab kalam bermaksud...", options: ["Huruf Hija'iyyah tunggal", "Perkataan yang tidak mempunyai tanda Isim & Fi'il", "Tanda bacaan baris", "Huruf Vokal"], ans: 1 }
+                ],
+                level2: [
+                    { q: "I'rab (الإعراب) bermaksud perubahan akhir kalimah disebabkan amil. Bahagian I'rab ada...", options: ["Dua (Rafa', Nasab)", "Tiga (Rafa', Nasab, Khafdh)", "Empat (Rafa', Nasab, Khafdh, Jazm)", "Lima"], ans: 2 },
+                    { q: "I'rab apakah yang KHUSUS untuk Isim (tidak berlaku pada Fi'il)?", options: ["Rafa' (Marfu')", "Nasab (Mansub)", "Khafdh / Jer (Majrur)", "Jazm (Majzum)"], ans: 2 },
+                    { q: "I'rab apakah yang KHUSUS untuk Fi'il (tidak berlaku pada Isim)?", options: ["Rafa'", "Nasab", "Khafdh", "Jazm"], ans: 3 },
+                    { q: "Tanda asal bagi I'rab Rafa' ialah...", options: ["Fathah", "Kasrah", "Dammah", "Sukun"], ans: 2 },
+                    { q: "Tanda asal bagi I'rab Nasab ialah...", options: ["Sukun", "Fathah", "Kasrah", "Alif"], ans: 1 }
+                ]
+            },
+            game2: {
+                level1: [
+                    { q: "Zaidun (زَيْدٌ)", options: ["Isim (Nama)", "Fi'il (Perbuatan)", "Huruf (Sendi/Tugas)"], ans: 0 },
+                    { q: "Yadhribu (يَضْرِبُ)", options: ["Isim", "Fi'il", "Huruf"], ans: 1 },
+                    { q: "Fi (فِي)", options: ["Isim", "Fi'il", "Huruf"], ans: 2 },
+                    { q: "Al-Masjid (المَسْجِدِ)", options: ["Isim", "Fi'il", "Huruf"], ans: 0 },
+                    { q: "Qad (قَدْ)", options: ["Isim", "Fi'il", "Huruf"], ans: 2 }
+                ],
+                level2: [
+                    { q: "Raja'a (رَجَعَ) ialah Fi'il Madhi. Apakah baris akhirnya?", options: ["Mabni atas Fathah", "Marfu' dengan Dammah", "Majzum dengan Sukun", "Majrur dengan Kasrah"], ans: 0 },
+                    { q: "Yaktubu (يَكْتُبُ) ialah Fi'il Mudhari'. Apakah I'rabnya (jika tiada amil)?", options: ["Mansub", "Majzum", "Marfu'", "Mabni"], ans: 2 },
+                    { q: "Lam (لَمْ) adalah amil yang menyebabkan Fi'il menjadi...", options: ["Marfu'", "Mansub", "Majzum", "Majrur"], ans: 2 },
+                    { q: "Min (مِنْ) adalah huruf Khafdh. Kalimah selepasnya mesti...", options: ["Majrur (Jer)", "Mansub (Nasab)", "Majzum (Jazm)", "Marfu' (Rafa')"], ans: 0 },
+                    { q: "Ja'a (جَاءَ) - Zaidun (زَيْدٌ). 'Zaidun' dibaca dammah kerana ianya...", options: ["Maf'ul Bih (Objek)", "Fa'il (Pelaku)", "Mubtada' (Subjek awal)", "Khabar"], ans: 1 }
+                ]
+            }
+        };
+
+        /* =========================================
+           STATE & LOGIC
+        ========================================= */
+        let playerName = "";
+        let totalScore = 0;
+        let currentGame = 0;
+        let currentLevel = 0;
+        
+        let questions = [];
+        let currentQIndex = 0;
+        let sessionScore = 0;
+        let combo = 0;
+
+        window.onload = () => {
+            const savedData = JSON.parse(localStorage.getItem('jurumiyyahData'));
+            if(savedData && savedData.currentUser) {
+                playerName = savedData.currentUser;
+                document.getElementById('playerName').value = playerName;
+            }
+        };
+
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
+            
+            if(screenId === 'screen-hub') {
+                document.getElementById('displayPlayerName').innerText = playerName;
+                updateTotalScoreDisplay();
+            }
+        }
+
+        function startGameApp() {
+            const input = document.getElementById('playerName').value.trim();
+            if(!input) { alert("Sila masukkan nama anda!"); return; }
+            playerName = input;
+            
+            let scores = JSON.parse(localStorage.getItem('jurumiyyahScores')) || {};
+            totalScore = scores[playerName] || 0;
+            
+            localStorage.setItem('jurumiyyahData', JSON.stringify({ currentUser: playerName }));
+            
+            playClickSound();
+            showScreen('screen-hub');
+        }
+
+        function selectGame(gameId) {
+            playClickSound();
+            currentGame = gameId;
+            const title = gameId === 1 ? "Kuiz Nahwu (الأسئلة)" : "Kenal Kalimah (الكلمات)";
+            document.getElementById('levelTitle').innerText = title;
+            
+            if(gameId === 1) {
+                document.getElementById('l1-desc').innerText = "Bab Al-Kalam";
+                document.getElementById('l2-desc').innerText = "Bab Al-I'rab";
+            } else {
+                document.getElementById('l1-desc').innerText = "Pengecaman Jenis Kalimah";
+                document.getElementById('l2-desc').innerText = "Pengecaman Tanda & I'rab";
+            }
+            showScreen('screen-levels');
+        }
+
+        function startQuiz(levelId) {
+            playClickSound();
+            currentLevel = levelId;
+            
+            const gameKey = currentGame === 1 ? 'game1' : 'game2';
+            const levelKey = levelId === 1 ? 'level1' : 'level2';
+            questions = [...DB[gameKey][levelKey]];
+            
+            questions.sort(() => Math.random() - 0.5);
+            
+            currentQIndex = 0;
+            sessionScore = 0;
+            combo = 0;
+            
+            document.getElementById('qTotal').innerText = questions.length;
+            document.getElementById('currentScore').innerText = sessionScore;
+            document.getElementById('comboMeter').style.opacity = '0';
+            
+            showScreen('screen-game');
+            renderQuestion();
+        }
+
+        function renderQuestion() {
+            const qObj = questions[currentQIndex];
+            document.getElementById('qIndex').innerText = currentQIndex + 1;
+            document.getElementById('questionText').innerText = qObj.q;
+            
+            const answersDiv = document.getElementById('answersContainer');
+            answersDiv.innerHTML = "";
+            
+            qObj.options.forEach((opt, index) => {
+                const btn = document.createElement('button');
+                btn.className = "btn-arcade bg-white border-2 border-slate-200 p-4 rounded-2xl text-lg font-bold text-slate-700 text-left w-full active:bg-slate-100 mb-2";
+                btn.innerHTML = `<span class="inline-block bg-slate-100 text-slate-500 w-8 h-8 rounded-full text-center leading-8 mr-2">${String.fromCharCode(65 + index)}</span> ${opt}`;
+                btn.onclick = () => checkAnswer(index, btn, qObj.ans);
+                answersDiv.appendChild(btn);
+            });
+        }
+
+        function checkAnswer(selectedIndex, btnElement, correctIndex) {
+            const animDiv = document.getElementById('animationFeedback');
+            const buttons = document.getElementById('answersContainer').querySelectorAll('button');
+            
+            buttons.forEach(b => b.disabled = true);
+            animDiv.classList.remove('hidden');
+            
+            if(selectedIndex === correctIndex) {
+                playCorrectSound();
+                combo++;
+                const points = 10 * combo;
+                sessionScore += points;
+                
+                btnElement.classList.replace('border-slate-200', 'border-emerald-500');
+                btnElement.classList.add('bg-emerald-100', 'text-emerald-800');
+                
+                document.getElementById('comboCount').innerText = combo;
+                document.getElementById('comboMeter').style.opacity = combo > 1 ? '1' : '0';
+                
+                animDiv.innerHTML = `
+                    <div class="text-center animate-pop">
+                        <i class="fas fa-star text-6xl text-yellow-400 mb-2"></i>
+                        <h1 class="text-5xl font-black text-emerald-500 arabic mb-1 drop-shadow-md">ممتاز !</h1>
+                        <h2 class="text-3xl font-black text-emerald-600">MUMTAZ</h2>
+                        <p class="font-bold text-slate-500 mt-2">+${points} Markah</p>
+                    </div>
+                `;
+            } else {
+                playWrongSound();
+                combo = 0;
+                document.getElementById('comboMeter').style.opacity = '0';
+                
+                btnElement.classList.replace('border-slate-200', 'border-red-500');
+                btnElement.classList.add('bg-red-100', 'animate-shake');
+                
+                buttons[correctIndex].classList.replace('border-slate-200', 'border-emerald-500');
+                buttons[correctIndex].classList.add('bg-emerald-50');
+                
+                animDiv.innerHTML = `
+                    <div class="text-center animate-pop">
+                        <i class="fas fa-times-circle text-6xl text-red-400 mb-2"></i>
+                        <h1 class="text-5xl font-black text-orange-500 arabic mb-1 drop-shadow-md">لا بأس</h1>
+                        <h2 class="text-3xl font-black text-orange-600">LA BA'SA</h2>
+                        <p class="font-bold text-slate-500 mt-2">Cuba Lagi Sahabat!</p>
+                    </div>
+                `;
+            }
+            
+            document.getElementById('currentScore').innerText = sessionScore;
+            
+            setTimeout(() => {
+                animDiv.classList.add('hidden');
+                currentQIndex++;
+                if(currentQIndex < questions.length) {
+                    renderQuestion();
+                } else {
+                    showResult();
+                }
+            }, 2000);
+        }
+
+        function showResult() {
+            playWinSound();
+            document.getElementById('finalScore').innerText = sessionScore;
+            totalScore += sessionScore;
+            showScreen('screen-result');
+        }
+
+        function finishGameAndSave() {
+            playClickSound();
+            let scores = JSON.parse(localStorage.getItem('jurumiyyahScores')) || {};
+            scores[playerName] = totalScore;
+            localStorage.setItem('jurumiyyahScores', JSON.stringify(scores));
+            showScreen('screen-hub');
+        }
+
+        function updateTotalScoreDisplay() {
+            let scores = JSON.parse(localStorage.getItem('jurumiyyahScores')) || {};
+            totalScore = scores[playerName] || 0;
+            document.getElementById('displayTotalScore').innerText = totalScore;
+        }
+
+        /* =========================================
+           LEADERBOARD LOGIC
+        ========================================= */
+        function showLeaderboard() {
+            playClickSound();
+            const modal = document.getElementById('leaderboardModal');
+            const listDiv = document.getElementById('leaderboardList');
+            
+            let scores = JSON.parse(localStorage.getItem('jurumiyyahScores')) || {};
+            let sortedScores = Object.keys(scores).map(key => {
+                return { name: key, score: scores[key] };
+            }).sort((a, b) => b.score - a.score);
+            
+            listDiv.innerHTML = "";
+            if(sortedScores.length === 0) {
+                listDiv.innerHTML = "<p class='text-center text-slate-400 font-bold mt-10'>Belum ada rekod.</p>";
+            } else {
+                sortedScores.forEach((item, index) => {
+                    let medal = "";
+                    let bg = "bg-slate-50";
+                    if(index === 0) { medal = "🥇"; bg = "bg-yellow-100 border-l-4 border-yellow-400"; }
+                    else if(index === 1) { medal = "🥈"; bg = "bg-slate-200"; }
+                    else if(index === 2) { medal = "🥉"; bg = "bg-orange-100"; }
+                    
+                    listDiv.innerHTML += `
+                        <div class="flex justify-between items-center p-4 rounded-xl ${bg}">
+                            <div class="font-black text-slate-700">
+                                <span class="mr-2">${medal || (index+1)+'.'}</span> ${item.name}
+                            </div>
+                            <div class="font-bold text-emerald-600 bg-emerald-100 px-3 py-1 rounded-full">
+                                ${item.score} <i class="fas fa-star text-xs"></i>
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeLeaderboard() {
+            playClickSound();
+            document.getElementById('leaderboardModal').classList.add('hidden');
+            document.getElementById('leaderboardModal').classList.remove('flex');
+        }
+
+        /* =========================================
+           WEB AUDIO API (SOUND EFFECTS GENERATOR)
+        ========================================= */
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+        function createOscillator(freq, type, duration, volLevel) {
+            if(audioCtx.state === 'suspended') audioCtx.resume();
+            
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            
+            osc.type = type;
+            osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+            
+            gain.gain.setValueAtTime(volLevel, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
+            
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            
+            osc.start();
+            osc.stop(audioCtx.currentTime + duration);
+        }
+
+        function playTouchSound() { createOscillator(600, 'sine', 0.1, 0.05); }
+        function playClickSound() { createOscillator(800, 'square', 0.1, 0.1); }
+        function playCorrectSound() {
+            setTimeout(() => createOscillator(523.25, 'sine', 0.2, 0.2), 0);
+            setTimeout(() => createOscillator(659.25, 'sine', 0.4, 0.2), 100);
+        }
+        function playWrongSound() { createOscillator(150, 'sawtooth', 0.4, 0.2); }
+        function playWinSound() {
+            setTimeout(() => createOscillator(440, 'sine', 0.2, 0.1), 0);
+            setTimeout(() => createOscillator(554.37, 'sine', 0.2, 0.1), 100);
+            setTimeout(() => createOscillator(659.25, 'sine', 0.2, 0.1), 200);
+            setTimeout(() => createOscillator(880, 'sine', 0.5, 0.2), 300);
+        }
+
+        /* =========================================
+           PENDAFTARAN SERVICE WORKER (PWA)
+        ========================================= */
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(reg => console.log('Service Worker didaftarkan!', reg))
+                    .catch(err => console.log('Service Worker gagal:', err));
+            });
+        }
+    </script>
+</body>
+</html>
